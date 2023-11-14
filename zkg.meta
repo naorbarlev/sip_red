@@ -1,14 +1,14 @@
 [package]
 script_dir = scripts
 test_command = cd testing && btest -c btest.cfg
-summary = TODO: A summary of sip_red in one line
+summary = reduces PII fiels from sip.log
 description = TODO: A more detailed description of sip_red.
 	It can span multiple lines, with this indentation.
 depends = 
 	zeek >=4.0.0
 
 [template]
-source = https://github.com/zeek/package-template
+source = https://github.com/naorbarlev/sip_red
 version = v3.1.0
 zkg_version = 2.14.0
 

@@ -1,4 +1,3 @@
-sip_red
-=================================
+# sip_red
 
-TODO: tell people what your package does!
+reduces PII fiels from sip.log.
