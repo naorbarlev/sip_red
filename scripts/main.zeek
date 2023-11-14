@@ -1,5 +1,10 @@
 module sip_red;
 
+##TODO
+## there is still rows thaat logging in the  finalize_sip hook.
+## need to find a way to log them in addition
+##
+
 export {
 	# Append the value LOG to the Log::ID enumerable.
 	redef enum Log::ID += { LOG };
@@ -42,13 +47,12 @@ event zeek_init()
 
 event sip_end_entity(c: connection, is_request: bool) &priority=0
 	{
-	#print c$sip;
-	#print "---------------";
 	if ( ! is_request )
 		{
+		#not always has value
 		if ( ! c$sip?$user_agent )
 			c$sip$user_agent = "-";
-
+		#not always has value
 		if ( ! c$sip?$content_type )
 			c$sip$content_type = "-";
 
