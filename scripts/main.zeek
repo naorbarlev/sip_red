@@ -1,9 +1,5 @@
 module sip_red;
-
-##TODO
-## there is still rows thaat logging in the  finalize_sip hook.
-## need to find a way to log them in addition
-##
+@load base/protocols/sip/main.zeek
 
 export {
 	# Append the value LOG to the Log::ID enumerable.
@@ -45,6 +41,21 @@ event zeek_init()
 	Log::create_stream(sip_red::LOG, [ $columns=sip_red::Info, $path="sip_red" ]);
 	}
 
+function flush_pending(c: connection)
+	{
+	# Flush all pending but incomplete request/response pairs.
+	if ( c?$sip_state )
+		{
+		for ( r, info in c$sip_state$pending )
+			{
+			# We don't use pending elements at index 0.
+			if ( r == 0 )
+				next;
+			Log::write(SIP::LOG, info);
+			}
+		}
+	}
+
 event sip_end_entity(c: connection, is_request: bool) &priority=0
 	{
 	if ( ! is_request )
@@ -66,5 +77,38 @@ event sip_end_entity(c: connection, is_request: bool) &priority=0
 		    $response_body_len=c$sip$response_body_len,
 		    $content_type=c$sip$content_type ];
 		Log::write(sip_red::LOG, log);
+		}
+	if ( ! c$sip?$method
+	    || ( c$sip$method == "BYE" && c$sip$status_code >= 200 && c$sip$status_code < 300 ) )
+		{
+		flush_pending(c);
+		}
+	}
+
+hook SIP::finalize_sip(c: connection) &priority=-5
+	{
+	if ( c?$sip_state )
+		{
+		for ( r, info in c$sip_state$pending )
+			{
+			#not always has value
+			if ( ! c$sip?$user_agent )
+				c$sip$user_agent = "-";
+			#not always has value
+			if ( ! c$sip?$content_type )
+				c$sip$content_type = "-";
+
+			local log: Info = [ $ts=network_time(), $uid=c$uid, $id=c$id,
+			    $method=c$sip$method,
+			    $request_path=c$sip$request_path,
+			    $response_path=c$sip$response_path,
+			    $user_agent=c$sip$user_agent,
+			    $status_code=c$sip$status_code,
+			    $status_msg=c$sip$status_msg,
+			    $request_body_len=c$sip$request_body_len,
+			    $response_body_len=c$sip$response_body_len,
+			    $content_type=c$sip$content_type ];
+			Log::write(sip_red::LOG, log);
+			}
 		}
 	}
