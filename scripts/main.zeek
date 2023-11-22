@@ -51,7 +51,7 @@ function flush_pending(c: connection)
 			# We don't use pending elements at index 0.
 			if ( r == 0 )
 				next;
-			Log::write(SIP::LOG, info);
+			Log::write(sip_red::LOG, info);
 			}
 		}
 	}
